@@ -1,31 +1,47 @@
--- Script de Skybox c00lkidd (Local/FE dependiente del ejecutor)
-local lighting = game:GetService("Lighting")
+-- Verificación de Seguridad por ID (Solo para dopitydopitydop)
+local miID = 1231804791
+local lplr = game.Players.LocalPlayer
 
--- Eliminar Skybox anterior si existe
-for _, obj in pairs(lighting:GetChildren()) do
-    if obj:IsA("Sky") then
-        obj:Destroy()
-    end
+if lplr.UserId ~= miID then
+    print("ACCESO DENEGADO: No eres el dueño de este script.")
+    return
 end
 
--- Crear el nuevo Skybox
-local sky = Instance.new("Sky")
-sky.Name = "c00lkidd_Sky"
-sky.SkyboxBk = "rbxassetid://159067838"
-sky.SkyboxDn = "rbxassetid://159067838"
-sky.SkyboxFt = "rbxassetid://159067838"
-sky.SkyboxLf = "rbxassetid://159067838"
-sky.SkyboxRt = "rbxassetid://159067838"
-sky.SkyboxUp = "rbxassetid://159067838"
-sky.SunTextureId = "rbxassetid://0" -- Quitar el sol
-sky.MoonTextureId = "rbxassetid://0" -- Quitar la luna
+-- Variables del Personaje
+local character = lplr.Character or lplr.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
 
-sky.Parent = lighting
+-- Configuración de la Órbita de c00lkidd
+local CANTIDAD_BLOQUES = 12 -- Más bloques para que se vea mejor
+local RADIO = 8
+local VELOCIDAD = 4
+local bloques = {}
 
--- Efectos extra para ambiente c00lkidd
-lighting.FogColor = Color3.new(0, 0, 0)
-lighting.FogEnd = 500
-lighting.FogStart = 0
-lighting.Ambient = Color3.new(1, 0, 0) -- Luz roja
+-- Crear los Bloques Rojos Neón
+for i = 1, CANTIDAD_BLOQUES do
+    local p = Instance.new("Part")
+    p.Size = Vector3.new(1.5, 1.5, 1.5)
+    p.Color = Color3.new(1, 0, 0) -- Rojo Intenso
+    p.Material = Enum.Material.Neon
+    p.CanCollide = false
+    p.Anchored = true
+    p.Parent = game.Workspace
+    table.insert(bloques, p)
+end
 
-print("Skybox de c00lkidd cargado exitosamente.")
+print("Orbital System v1: ACTIVADO para " .. lplr.Name)
+
+-- Movimiento en bucle
+game:GetService("RunService").RenderStepped:Connect(function()
+    if not root.Parent then return end -- Si mueres, el script espera
+    
+    local tiempo = tick() * VELOCIDAD
+    for i, bloque in ipairs(bloques) do
+        local angulo = (i / CANTIDAD_BLOQUES) * math.pi * 2
+        local x = math.cos(tiempo + angulo) * RADIO
+        local z = math.sin(tiempo + angulo) * RADIO
+        local y = math.sin(tiempo * 0.5) * 2 -- Efecto de subida y bajada suave
+        
+        bloque.CFrame = CFrame.new(root.Position + Vector3.new(x, y + 2, z))
+    end
+end)
